@@ -75,7 +75,7 @@ if __name__ == '__main__':
     model = AlexNet()
     
     # Run the model (build, train, evaluate)
-    model.run()
+    # model.run()
 
     # Eval and tests can be run after loading the model
     # model.load()
