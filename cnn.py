@@ -89,13 +89,13 @@ class CNN(ABC):
         checkpoint = ModelCheckpoint(filepath=self.model_file, verbose=1, 
                                      save_best_only=True)
         early_stop = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=25)  
-        history = self.model.fit_generator(self.datagen.flow(self.X_train, self.y_train, 
-                                                             batch_size=self.batch_size), 
-                                                             callbacks=[checkpoint, early_stop],
-                                                             steps_per_epoch=self.X_train.shape[0] // self.batch_size, 
-                                                             epochs=self.epochs,
-                                                             verbose=2,
-                                                             validation_data=(self.X_test,self.y_test))
+        hist = self.model.fit(self.X_train, self.y_train, 
+                                batch_size=self.batch_size, 
+                                epochs=self.epochs, 
+                                validation_data=(self.X_test, self.y_test),
+                                callbacks=[checkpoint, early_stop],
+                                verbose=2,
+                                shuffle=True)
         
         # plot learning curves of model losses
         df = pd.DataFrame(history.history)
