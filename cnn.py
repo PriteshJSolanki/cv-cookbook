@@ -5,6 +5,7 @@ Base class implementation of CNN
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import cv2
 from abc import ABC, abstractmethod
 from keras.datasets import cifar10, mnist
 from keras.utils import np_utils
@@ -12,9 +13,9 @@ from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.preprocessing.image import ImageDataGenerator
 
 class CNN(ABC):
-    def __init__(self, dataset='cifar') -> None:
+    def __init__(self, dataset='cifar10') -> None:
         # Load dataset
-        if dataset == 'cifar':
+        if dataset == 'cifar10':
             (self.X_train, self.y_train), (self.X_test, self.y_test) = cifar10.load_data()
             # define text labels (source: https://www.cs.toronto.edu/~kriz/cifar.html)
             self.cifar10_labels = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 
@@ -33,6 +34,14 @@ class CNN(ABC):
         self.batch_size = 32
         self.epochs = 100
 
+    def visualize_img(self, img, label=''):
+        fig = plt.figure(figsize=(2,2))
+        ax = fig.add_subplot(111)
+        ax.set_title(label)
+        ax.imshow(np.squeeze(img))
+        ax.imshow(img)
+        plt.show()
+
     def normalize(self):
         mean = np.mean(self.X_train)
         std = np.std(self.X_train)
@@ -49,6 +58,14 @@ class CNN(ABC):
         # Split data into training and validation
         self.X_train, self.X_val = (self.X_train[5000:], self.X_train[:5000])
         self.y_train, self.y_val = (self.y_train[5000:], self.y_train[:5000])
+
+    def resize(self, img_rows, img_cols, samples):
+        # Resize images for various CNN implementations
+        self.X_train = np.array([cv2.resize(img, (img_rows,img_cols)) for img in self.X_train[:samples,:,:,:]])
+        self.X_test = np.array([cv2.resize(img, (img_rows,img_cols)) for img in self.X_test[:samples,:,:,:]]) 
+
+        self.y_train = self.y_train[:samples,:]
+        self.y_test = self.y_test[:samples,:]
 
     def reshape(self):
         # Reshape the data to support mnist dataset
@@ -89,7 +106,7 @@ class CNN(ABC):
         checkpoint = ModelCheckpoint(filepath=self.model_file, verbose=1, 
                                      save_best_only=True)
         early_stop = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=25)  
-        hist = self.model.fit(self.X_train, self.y_train, 
+        history = self.model.fit(self.X_train, self.y_train, 
                                 batch_size=self.batch_size, 
                                 epochs=self.epochs, 
                                 validation_data=(self.X_test, self.y_test),
